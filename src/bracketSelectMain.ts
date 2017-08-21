@@ -4,7 +4,6 @@
 import * as vscode from 'vscode';
 import { bracketUtil } from './bracketUtil';
 
-
 class SearchResult {
     bracket: string;
     offset: number;
@@ -13,6 +12,16 @@ class SearchResult {
         this.bracket = bracket;
         this.offset = offset;
     }
+}
+
+function isNextToBracket(text: string, backwardStarter: number, forwardStarter: number): Boolean {
+    if (backwardStarter < 0 || forwardStarter >= text.length) {
+        return false;
+    }
+
+    let backwardChar = text.charAt(backwardStarter);
+    let forwardChar = text.charAt(forwardStarter);
+    return bracketUtil.isMatch(backwardChar, forwardChar);
 }
 
 function findBackward(text: string, index: number): SearchResult {
@@ -67,27 +76,50 @@ function showInfo(msg: string): void {
     vscode.window.showInformationMessage(msg);
 }
 
-function selectText(includeBracket: boolean) {
+function getSearchContext() {
     const editor = vscode.window.activeTextEditor;
-    const offset = editor.document.offsetAt(editor.selection.active);
-    const text = editor.document.getText();
-    try {
-        const backwardResult = findBackward(text, offset - 1);
-        const forwardResult = findForward(text, offset);
+    const selection = editor.selection;
+    let selectionStart = editor.document.offsetAt(editor.selection.anchor);
+    let selectionEnd = editor.document.offsetAt(editor.selection.active);
+    if (selection.isReversed) {
+        //exchange
+        [selectionStart, selectionEnd] = [selectionEnd, selectionStart]
+    }
+    return {
+        backwardStarter: selectionStart - 1, //coverage vscode selection index to text index
+        forwardStarter: selectionEnd,
+        text: editor.document.getText()
+    }
+}
+
+function doSelection(start: number, end: number) {
+    const editor = vscode.window.activeTextEditor;
+    editor.selection = new vscode.Selection(
+        editor.document.positionAt(start + 1), //convert text index to vs selection index
+        editor.document.positionAt(end));
+}
+
+function selectText() {
+    const searchContext = getSearchContext();
+    let { text, backwardStarter, forwardStarter } = searchContext;
+    if (backwardStarter < 0 || forwardStarter >= text.length) {
+        return;
+    }
+    let selectionStart: number, selectionEnd: number;
+    if (isNextToBracket(text, backwardStarter, forwardStarter)) {
+        selectionStart = backwardStarter - 1;
+        selectionEnd = forwardStarter + 1;
+    } else {
+        const backwardResult = findBackward(searchContext.text, searchContext.backwardStarter);
+        const forwardResult = findForward(searchContext.text, searchContext.forwardStarter);
         if (!bracketUtil.isMatch(backwardResult.bracket, forwardResult.bracket)) {
             showInfo('Unmatched bracket pair')
             return;
         }
-        let selectionStart = backwardResult.offset < text.length ? backwardResult.offset + 1 : backwardResult.offset;
-        let selectionEnd = forwardResult.offset;
-        if(includeBracket){
-            selectionStart -= 1;
-            selectionEnd += 1;
-        }
-        editor.selection = new vscode.Selection(editor.document.positionAt(selectionStart), editor.document.positionAt(selectionEnd));
-    } catch (error) {
-        showInfo(error)
+        selectionStart = backwardResult.offset;
+        selectionEnd = forwardResult.offset;
     }
+    doSelection(selectionStart, selectionEnd);
 }
 
 
@@ -95,10 +127,7 @@ function selectText(includeBracket: boolean) {
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('bracket-select.select', function () {
-            selectText(false)
-        }),
-        vscode.commands.registerCommand('bracket-select.selectInclude', function () {
-            selectText(true);
+            selectText()
         })
     );
 }

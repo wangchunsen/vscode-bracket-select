@@ -2,7 +2,7 @@
     "name": "bracket-select",
     "displayName": "Bracket Select",
     "description": "Quick select code between brackets, support for (),{} and []",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "publisher": "chunsen",
     "engines": {
         "vscode": "^1.15.0"
@@ -11,8 +11,7 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:bracket-select.select",
-        "onCommand:bracket-select.selectInclude"
+        "onCommand:bracket-select.select"
     ],
     "main": "./out/src/bracketSelectMain",
     "contributes": {
@@ -20,10 +19,6 @@
             {
                 "command": "bracket-select.select",
                 "title": "BraSel:Select"
-            },
-            {
-                "command": "bracket-select.selectInclude",
-                "title": "BraSel:Select Include Brackets"
             }
         ],
         "keybindings": [
@@ -31,12 +26,6 @@
                 "command": "bracket-select.select",
                 "key": "alt+a",
                 "mac": "alt+a",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "bracket-select.selectInclude",
-                "key": "ctrl+alt+a",
-                "mac": "cmd+alt+a",
                 "when": "editorTextFocus"
             }
         ]
