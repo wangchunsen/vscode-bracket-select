@@ -1,0 +1,56 @@
+{
+    "name": "bracket-select",
+    "displayName": "Bracket Select",
+    "description": "Quick select code between brackets, support for (),{} and []",
+    "version": "0.0.1",
+    "publisher": "chunsen",
+    "engines": {
+        "vscode": "^1.15.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onCommand:bracket-select.select","onCommand:bracket-select.selectInclude"
+    ],
+    "main": "./out/src/bracketSelectMain",
+    "contributes": {
+        "commands": [
+            {
+                "command": "bracket-select.select",
+                "title": "BraSel:Select"
+            },
+            {
+                "command": "bracket-select.selectInclude",
+                "title": "BraSel:Select Include Brackets"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "bracket-select.select",
+                "key": "alt+a",
+                "mac": "alt+a",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "bracket-select.selectInclude",
+                "key": "ctrl+alt+a",
+                "mac": "cmd+alt+a",
+                "when": "editorTextFocus"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "tsc -p ./",
+        "compile": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^2.0.3",
+        "vscode": "^1.0.0",
+        "mocha": "^2.3.3",
+        "@types/node": "^6.0.40",
+        "@types/mocha": "^2.2.32"
+    }
+}
