@@ -1,7 +1,7 @@
-# Change Log
-All notable changes to the "bracket-select" extension will be documented in this file.
-
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
+## [1.0.0]
 - Initial release
+
+## [2.0.0]
+* Add support for `<>`,`""` and `''`.
+* Support double click `alt+a` to select include bracked, instead of `ctrl+alt+a`.
+* Just click `alt+a` for multiple times, you will find how it works, enjoy it.

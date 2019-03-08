@@ -4,8 +4,13 @@
     "description": "Quick select code between brackets, support for (),{} and [], <>",
     "version": "2.0.0",
     "publisher": "chunsen",
+    "icon": "icon.png",
     "engines": {
         "vscode": "^1.15.0"
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/wangchunsen/vscode-bracket-select.git"
     },
     "categories": [
         "Other"
