@@ -14,27 +14,18 @@ class SearchResult {
     }
 }
 
-function isNextToBracket(text: string, backwardStarter: number, forwardStarter: number): Boolean {
-    if (backwardStarter < 0 || forwardStarter >= text.length) {
-        return false;
-    }
-
-    let backwardChar = text.charAt(backwardStarter);
-    let forwardChar = text.charAt(forwardStarter);
-    return bracketUtil.isMatch(backwardChar, forwardChar);
-}
-
 function findBackward(text: string, index: number): SearchResult {
     const bracketStack: string[] = [];
-    let offset = 0;
-    let bracket: string = '';
     for (let i = index; i >= 0; i--) {
         let char = text.charAt(i);
+        // if it's a quote, we can not infer it is a open or close one 
+        //so just return, this is for the case current selection is inside a string; 
+        if (bracketUtil.isQuoteBracket(char) && bracketStack.length == 0) {
+            return new SearchResult(char, i);
+        }
         if (bracketUtil.isOpenBracket(char)) {
             if (bracketStack.length == 0) {
-                bracket = char;
-                offset = i;
-                break;
+                return new SearchResult(char, i);
             } else {
                 let top = bracketStack.pop();
                 if (!bracketUtil.isMatch(char, top)) {
@@ -45,20 +36,20 @@ function findBackward(text: string, index: number): SearchResult {
             bracketStack.push(char);
         }
     }
-    return new SearchResult(bracket, offset);
+    //we are get to edge
+    return null;
 }
 
 function findForward(text: string, index: number): SearchResult {
     const bracketStack: string[] = [];
-    let offset = text.length;
-    let bracket: string = '';
     for (let i = index; i < text.length; i++) {
         let char = text.charAt(i);
+        if (bracketUtil.isQuoteBracket(char) && bracketStack.length == 0) {
+            return new SearchResult(char, i);
+        }
         if (bracketUtil.isCloseBracket(char)) {
             if (bracketStack.length == 0) {
-                offset = i;
-                bracket = char;
-                break;
+                return new SearchResult(char, i);
             } else {
                 let top = bracketStack.pop();
                 if (!bracketUtil.isMatch(top, char)) {
@@ -69,7 +60,7 @@ function findForward(text: string, index: number): SearchResult {
             bracketStack.push(char);
         }
     }
-    return new SearchResult(bracket, offset);
+    return null;
 }
 
 function showInfo(msg: string): void {
@@ -98,26 +89,49 @@ function doSelection(start: number, end: number) {
         editor.document.positionAt(start + 1), //convert text index to vs selection index
         editor.document.positionAt(end));
 }
+function isMatch(r1: SearchResult, r2: SearchResult) {
+    return r1 != null && r2 != null && bracketUtil.isMatch(r1.bracket, r2.bracket);
+}
 
-function selectText() {
+function selectText(includeBrack: boolean) {
     const searchContext = getSearchContext();
     let { text, backwardStarter, forwardStarter } = searchContext;
     if (backwardStarter < 0 || forwardStarter >= text.length) {
         return;
     }
+
     let selectionStart: number, selectionEnd: number;
-    if (isNextToBracket(text, backwardStarter, forwardStarter)) {
+    var backwardResult = findBackward(searchContext.text, searchContext.backwardStarter);
+    var forwardResult = findForward(searchContext.text, searchContext.forwardStarter);
+
+    while (forwardResult != null
+        && !isMatch(backwardResult, forwardResult)
+        && bracketUtil.isQuoteBracket(forwardResult.bracket)) {
+        forwardResult = findForward(searchContext.text, forwardResult.offset + 1);
+    }
+    while (backwardResult != null
+        && !isMatch(backwardResult, forwardResult)
+        && bracketUtil.isQuoteBracket(backwardResult.bracket)) {
+        backwardResult = findBackward(searchContext.text, backwardResult.offset - 1);
+    }
+
+    if (!isMatch(backwardResult, forwardResult)) {
+        showInfo('Unmatched bracket pair')
+        return;
+    }
+    // we are next to a bracket
+    // this is the case for doule press select
+    if (backwardStarter == backwardResult.offset && forwardResult.offset == forwardStarter) {
         selectionStart = backwardStarter - 1;
         selectionEnd = forwardStarter + 1;
     } else {
-        const backwardResult = findBackward(searchContext.text, searchContext.backwardStarter);
-        const forwardResult = findForward(searchContext.text, searchContext.forwardStarter);
-        if (!bracketUtil.isMatch(backwardResult.bracket, forwardResult.bracket)) {
-            showInfo('Unmatched bracket pair')
-            return;
+        if (includeBrack) {
+            selectionStart = backwardResult.offset - 1;
+            selectionEnd = forwardResult.offset + 1;
+        } else {
+            selectionStart = backwardResult.offset;
+            selectionEnd = forwardResult.offset;
         }
-        selectionStart = backwardResult.offset;
-        selectionEnd = forwardResult.offset;
     }
     doSelection(selectionStart, selectionEnd);
 }
@@ -127,7 +141,10 @@ function selectText() {
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('bracket-select.select', function () {
-            selectText()
+            selectText(false);
+        }),
+        vscode.commands.registerCommand('bracket-select.select-include', function () {
+            selectText(true);
         })
     );
 }
