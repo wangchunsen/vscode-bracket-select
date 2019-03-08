@@ -2,7 +2,7 @@
     "name": "bracket-select",
     "displayName": "Bracket Select",
     "description": "Quick select code between brackets, support for (),{} and [], <>",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "publisher": "chunsen",
     "icon": "icon.png",
     "engines": {

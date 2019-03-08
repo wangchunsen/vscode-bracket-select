@@ -1,8 +1,8 @@
 'use strict';
 
 export namespace bracketUtil {
-    let openBarcket = ['(', '{', '[', '<']
-    let closeBracket = [')', '}', ']', '>']
+    let openBarcket = ['(', '{', '[']
+    let closeBracket = [')', '}', ']']
     let quoteBrackets = ['"', "'"]
 
     export function isMatch(open: string, close: string): Boolean {

@@ -1,6 +1,6 @@
 # Bracket Select
 This is a simple plugin that support to quick select text between matched brackets.  
-This plugin support `()`, `{}` and `[]`, `<>`,`""`, `''`, and can not be customized.  
+This plugin support `()`, `{}` and `[]`,`""`, `''`, and can not be customized.  
 Really hope this plugin can help you!
 
 
