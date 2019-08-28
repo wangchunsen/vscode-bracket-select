@@ -1,12 +1,12 @@
 'use strict';
 
 export namespace bracketUtil {
-    let openBarcket = ['(', '{', '[']
+    let openBracket = ['(', '{', '[']
     let closeBracket = [')', '}', ']']
     let quoteBrackets = ['"', "'"]
 
     export function isMatch(open: string, close: string): Boolean {
-        let opentIndex = openBarcket.indexOf(open)
+        let opentIndex = openBracket.indexOf(open)
         if (opentIndex >= 0) {
             return closeBracket[opentIndex] == close;
         } else if (isQuoteBracket(open)) {
@@ -16,7 +16,7 @@ export namespace bracketUtil {
     }
 
     export function isOpenBracket(char: string): Boolean {
-        return openBarcket.indexOf(char) >= 0;
+        return openBracket.indexOf(char) >= 0;
     }
 
     export function isCloseBracket(char: string): Boolean {
