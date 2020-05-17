@@ -18,8 +18,8 @@ function findBackward(text: string, index: number): SearchResult {
     const bracketStack: string[] = [];
     for (let i = index; i >= 0; i--) {
         let char = text.charAt(i);
-        // if it's a quote, we can not infer it is a open or close one 
-        //so just return, this is for the case current selection is inside a string; 
+        // if it's a quote, we can not infer it is a open or close one
+        //so just return, this is for the case current selection is inside a string;
         if (bracketUtil.isQuoteBracket(char) && bracketStack.length == 0) {
             return new SearchResult(char, i);
         }
@@ -67,11 +67,10 @@ function showInfo(msg: string): void {
     vscode.window.showInformationMessage(msg);
 }
 
-function getSearchContext() {
+function getSearchContext(selection: vscode.Selection) {
     const editor = vscode.window.activeTextEditor;
-    const selection = editor.selection;
-    let selectionStart = editor.document.offsetAt(editor.selection.anchor);
-    let selectionEnd = editor.document.offsetAt(editor.selection.active);
+    let selectionStart = editor.document.offsetAt(selection.anchor);
+    let selectionEnd = editor.document.offsetAt(selection.active);
     if (selection.isReversed) {
         //exchange
         [selectionStart, selectionEnd] = [selectionEnd, selectionStart]
@@ -83,18 +82,29 @@ function getSearchContext() {
     }
 }
 
-function doSelection(start: number, end: number) {
+function doSelection({ start, end }: { start: number, end: number }) {
     const editor = vscode.window.activeTextEditor;
-    editor.selection = new vscode.Selection(
+    return new vscode.Selection(
         editor.document.positionAt(start + 1), //convert text index to vs selection index
-        editor.document.positionAt(end));
+        editor.document.positionAt(end)
+    );
 }
+
 function isMatch(r1: SearchResult, r2: SearchResult) {
     return r1 != null && r2 != null && bracketUtil.isMatch(r1.bracket, r2.bracket);
 }
 
-function selectText(includeBrack: boolean) {
-    const searchContext = getSearchContext();
+function multiSelectText(includeBrack: boolean) {
+    const editor = vscode.window.activeTextEditor;
+    editor.selections = editor.selections.map((selection) => {
+        const newSelect = selectText(includeBrack, selection)
+        if (!newSelect) return selection;
+        return doSelection(newSelect);
+    })
+}
+
+function selectText(includeBrack: boolean, selection: vscode.Selection): { start: number, end: number } | void {
+    const searchContext = getSearchContext(selection);
     let { text, backwardStarter, forwardStarter } = searchContext;
     if (backwardStarter < 0 || forwardStarter >= text.length) {
         return;
@@ -133,7 +143,10 @@ function selectText(includeBrack: boolean) {
             selectionEnd = forwardResult.offset;
         }
     }
-    doSelection(selectionStart, selectionEnd);
+    return {
+        start: selectionStart,
+        end: selectionEnd,
+    }
 }
 
 
@@ -141,10 +154,10 @@ function selectText(includeBrack: boolean) {
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('bracket-select.select', function () {
-            selectText(false);
+            multiSelectText(false);
         }),
         vscode.commands.registerCommand('bracket-select.select-include', function () {
-            selectText(true);
+            multiSelectText(true);
         })
     );
 }
