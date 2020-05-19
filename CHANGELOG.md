@@ -8,3 +8,8 @@
 
 ## [2.0.1]
 - Remove support for `<>`, because it breaks other bracket if there is a case like `if (a > b)`
+
+## [2.0.2]
+- Support selection of ` `` `
+- Support multiple cursors selection
+- Support undo selections

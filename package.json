@@ -2,15 +2,15 @@
     "name": "bracket-select",
     "displayName": "Bracket Select",
     "description": "Quick select code between brackets, support for (),{} and [], <>",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "publisher": "chunsen",
     "icon": "icon.png",
     "engines": {
-        "vscode": "^1.15.0"
+        "vscode": "^1.34.0"
     },
     "repository": {
-      "type": "git",
-      "url": "https://github.com/wangchunsen/vscode-bracket-select.git"
+        "type": "git",
+        "url": "https://github.com/wangchunsen/vscode-bracket-select.git"
     },
     "categories": [
         "Other"
@@ -27,11 +27,21 @@
                 "title": "BraSel:Select"
             },
             {
-              "command": "bracket-select.select-include",
-              "title":"BraSel:SelectInclude"
+                "command": "bracket-select.undo-select",
+                "title": "BraSel:UndoSelect"
+            },
+            {
+                "command": "bracket-select.select-include",
+                "title": "BraSel:SelectInclude"
             }
         ],
         "keybindings": [
+            {
+                "command": "bracket-select.undo-select",
+                "key": "alt+z",
+                "mac": "alt+z",
+                "when": "editorTextFocus"
+            },
             {
                 "command": "bracket-select.select",
                 "key": "alt+a",
@@ -39,25 +49,24 @@
                 "when": "editorTextFocus"
             },
             {
-              "command": "bracket-select.select-include",
-              "key": "ctrl+alt+a",
-              "mac": "cmd+alt+a",
-              "when": "editorTextFocus"
-          }
+                "command": "bracket-select.select-include",
+                "key": "ctrl+alt+a",
+                "mac": "cmd+alt+a",
+                "when": "editorTextFocus"
+            }
         ]
     },
     "scripts": {
-        "vscode:prepublish": "tsc -p ./",
-        "compile": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "node ./node_modules/vscode/bin/test"
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "lint": "tslint -p ./",
+        "watch": "tsc -watch -p ./"
     },
     "devDependencies": {
-        "typescript": "^2.0.3",
-        "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
-        "@types/node": "^6.0.40",
-        "@types/mocha": "^2.2.32"
+        "@types/node": "^12.12.0",
+        "@types/vscode": "^1.34.0",
+        "tslint": "^5.19.0",
+        "typescript": "^3.8.3"
     },
     "dependencies": {}
 }

@@ -3,6 +3,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { bracketUtil } from './bracketUtil';
+import * as history from './selectionHistory';
 
 class SearchResult {
     bracket: string;
@@ -36,7 +37,7 @@ function findBackward(text: string, index: number): SearchResult {
             bracketStack.push(char);
         }
     }
-    //we are get to edge
+    //we are geting to the edge
     return null;
 }
 
@@ -69,12 +70,8 @@ function showInfo(msg: string): void {
 
 function getSearchContext(selection: vscode.Selection) {
     const editor = vscode.window.activeTextEditor;
-    let selectionStart = editor.document.offsetAt(selection.anchor);
-    let selectionEnd = editor.document.offsetAt(selection.active);
-    if (selection.isReversed) {
-        //exchange
-        [selectionStart, selectionEnd] = [selectionEnd, selectionStart]
-    }
+    let selectionStart = editor.document.offsetAt(selection.start);
+    let selectionEnd = editor.document.offsetAt(selection.end);
     return {
         backwardStarter: selectionStart - 1, //coverage vscode selection index to text index
         forwardStarter: selectionEnd,
@@ -82,7 +79,7 @@ function getSearchContext(selection: vscode.Selection) {
     }
 }
 
-function doSelection({ start, end }: { start: number, end: number }) {
+function toVscodeSelection({ start, end }: { start: number, end: number }): vscode.Selection {
     const editor = vscode.window.activeTextEditor;
     return new vscode.Selection(
         editor.document.positionAt(start + 1), //convert text index to vs selection index
@@ -94,13 +91,19 @@ function isMatch(r1: SearchResult, r2: SearchResult) {
     return r1 != null && r2 != null && bracketUtil.isMatch(r1.bracket, r2.bracket);
 }
 
-function multiSelectText(includeBrack: boolean) {
+function expandSelection(includeBrack: boolean) {
     const editor = vscode.window.activeTextEditor;
-    editor.selections = editor.selections.map((selection) => {
-        const newSelect = selectText(includeBrack, selection)
-        if (!newSelect) return selection;
-        return doSelection(newSelect);
+    let originSelections = editor.selections;
+
+    let selections = originSelections.map((originSelection) => {
+        const newSelect = selectText(includeBrack, originSelection)
+        return newSelect ? toVscodeSelection(newSelect) : originSelection
     })
+
+    let haveChange = selections.findIndex((s, i) => !s.isEqual(originSelections[i])) >= 0
+    if (haveChange) {
+        history.changeSelections(selections);
+    }
 }
 
 function selectText(includeBrack: boolean, selection: vscode.Selection): { start: number, end: number } | void {
@@ -126,7 +129,7 @@ function selectText(includeBrack: boolean, selection: vscode.Selection): { start
     }
 
     if (!isMatch(backwardResult, forwardResult)) {
-        showInfo('Unmatched bracket pair')
+        showInfo('No matched bracket pairs found')
         return;
     }
     // we are next to a bracket
@@ -150,14 +153,15 @@ function selectText(includeBrack: boolean, selection: vscode.Selection): { start
 }
 
 
-//This is the main extension point
+//Main extension point
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('bracket-select.select', function () {
-            multiSelectText(false);
+            expandSelection(false);
         }),
+        vscode.commands.registerCommand('bracket-select.undo-select', history.unDoSelect),
         vscode.commands.registerCommand('bracket-select.select-include', function () {
-            multiSelectText(true);
+            expandSelection(true);
         })
     );
 }
