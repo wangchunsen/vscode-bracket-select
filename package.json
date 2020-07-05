@@ -54,7 +54,38 @@
                 "mac": "cmd+alt+a",
                 "when": "editorTextFocus"
             }
-        ]
+        ],
+        "configuration": {
+            "title": "Bracket Select configuration",
+            "properties": {
+                "bracket-select.bracketPairs": {
+                    "type": "array",
+                    "default": [
+                        [
+                            "(",
+                            ")"
+                        ],
+                        [
+                            "{",
+                            "}"
+                        ],
+                        [
+                            "[",
+                            "]"
+                        ]
+                    ]
+                },
+                "bracket-select.sameBracket": {
+                    "type": "array",
+                    "default": [
+                        "\"",
+                        "'",
+                        "`"
+                    ],
+                    "description": "double quote is escaped for JSON"
+                }
+            }
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
